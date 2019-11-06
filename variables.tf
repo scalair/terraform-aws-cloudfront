@@ -153,3 +153,20 @@ variable "forwarded_cookies" {
   type    = string
   default = "none"
 }
+
+variable "logging_enabled" {
+  description = "Boolean to enable / disable access_logs"
+  type        = bool
+  default     = false
+}
+
+variable "logging_config_include_cookies" {
+  description = "Specifies whether you want CloudFront to include cookies in access logs"
+  type        = bool
+  default     = false
+}
+
+variable "logging_config_bucket" {
+  description = "The Amazon S3 bucket to store the access logs in, for example"
+  type        = string
+}
