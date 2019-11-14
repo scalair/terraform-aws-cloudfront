@@ -1,3 +1,23 @@
+locals {
+  bucket_count = var.logging_enabled ? 1 : 0
+}
+
+resource "aws_s3_bucket" "bucket" {
+  count = local.bucket_count
+
+  bucket = var.logging_config_bucket
+  region = var.alb_state_region
+  acl    = "private"
+
+  versioning {
+    enabled = false
+  }
+
+  force_destroy = true
+
+  tags = var.tags
+}
+
 resource "aws_cloudfront_distribution" "cdn" {
   origin {
     domain_name = data.terraform_remote_state.alb.outputs.dns_name
@@ -10,6 +30,14 @@ resource "aws_cloudfront_distribution" "cdn" {
       origin_protocol_policy   = var.origin_protocol_policy
       origin_read_timeout      = var.origin_read_timeout
       origin_ssl_protocols     = var.origin_ssl_protocols
+    }
+  }
+
+  dynamic "logging_config" {
+    for_each = var.logging_enabled ? [1] : []
+    content {
+      bucket          = aws_s3_bucket.bucket[local.bucket_count - 1].bucket_domain_name
+      include_cookies = var.logging_config_include_cookies
     }
   }
 
