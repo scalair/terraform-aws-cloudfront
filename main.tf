@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "bucket" {
 
 resource "aws_cloudfront_distribution" "cdn" {
   origin {
-    domain_name = data.terraform_remote_state.alb.outputs.dns_name
+    domain_name = var.origin_domain_name == "" ? data.terraform_remote_state.alb.outputs.dns_name : var.origin_domain_name
     origin_id   = data.terraform_remote_state.alb.outputs.load_balancer_id
 
     custom_origin_config {

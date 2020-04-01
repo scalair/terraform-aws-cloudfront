@@ -27,7 +27,7 @@ variable "enabled" {
 
 variable "tags" {
   description = "Additional tags (e.g. `map('BusinessUnit','XYZ')`)"
-  type        = "map"
+  type        = map
   default     = {}
 }
 
@@ -38,8 +38,13 @@ variable "acm_certificate_arn" {
 
 variable "aliases" {
   description = "List of aliases. CAUTION! Names MUSTN'T contain trailing `.`"
-  type        = "list"
+  type        = list(string)
   default     = []
+}
+
+variable "origin_domain_name" {
+  description = "The domain name of the custom origin. If not set, terraform will use ALB domain name/"
+  default     = ""
 }
 
 variable "origin_http_port" {
@@ -59,7 +64,7 @@ variable "origin_protocol_policy" {
 
 variable "origin_ssl_protocols" {
   description = "(Required) - The SSL/TLS protocols that you want CloudFront to use when communicating with your origin over HTTPS"
-  type        = "list"
+  type        = list(string)
   default     = ["TLSv1", "TLSv1.1", "TLSv1.2"]
 }
 
@@ -100,13 +105,13 @@ variable "viewer_protocol_policy" {
 
 variable "allowed_methods" {
   description = "List of allowed methods (e.g. ` GET, PUT, POST, DELETE, HEAD`) for AWS CloudFront"
-  type        = "list"
+  type        = list(string)
   default     = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
 }
 
 variable "cached_methods" {
   description = "List of cached methods (e.g. ` GET, PUT, POST, DELETE, HEAD`)"
-  type        = "list"
+  type        = list(string)
   default     = ["GET", "HEAD"]
 }
 
