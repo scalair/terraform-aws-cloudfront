@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.0
+### Added
+- Web ACL ARN for WAF association
+
 ## v1.2.0 - 2020-04-01
 ### Changed
 - Origin domain name can now be provided manually
