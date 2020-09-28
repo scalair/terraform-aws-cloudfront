@@ -79,6 +79,8 @@ resource "aws_cloudfront_distribution" "cdn" {
       restriction_type = "none"
     }
   }
+  
+  web_acl_id = can(var.web_acl_id) ? var.web_acl_id : null
 
   tags = var.tags
 }
