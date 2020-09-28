@@ -175,3 +175,9 @@ variable "logging_config_bucket" {
   description = "The Amazon S3 bucket to store the access logs in, for example"
   type        = string
 }
+
+variable "web_acl_id" {
+  description = " If you're using AWS WAF to filter CloudFront requests, the Id of the AWS WAF web ACL that is associated with the distribution"
+  type        = string
+  default     = null
+}
