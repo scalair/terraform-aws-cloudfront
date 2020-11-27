@@ -6,7 +6,6 @@ resource "aws_s3_bucket" "bucket" {
   count = local.bucket_count
 
   bucket = var.logging_config_bucket
-  region = var.alb_state_region
   acl    = "private"
 
   versioning {
