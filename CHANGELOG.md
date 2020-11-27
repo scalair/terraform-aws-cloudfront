@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.0 - 2020-11-27
+### Changed
+
+- Remove region from `aws_s3_bucket` block since AWS provider v3 doesn't support it anymore
+
 ## v1.3.0
 ### Added
 - Web ACL ARN for WAF association
