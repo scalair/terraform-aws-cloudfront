@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.0.0 - 2021-02-08
+
+This release contains *breaking changes*.
+### Changed
+
+- Using `terraform-aws-cloudfront` module for creating distributions instead of Terraform resource
+- Using `terraform-aws-s3-bucket` module for creating log buckets instead of Terraform resource
+
 ## v1.4.0 - 2020-11-27
 ### Changed
 
