@@ -1,99 +1,65 @@
-locals {
-  bucket_count = var.logging_enabled ? 1 : 0
+module "cloudfront" {
+  source                        = "terraform-aws-modules/cloudfront/aws"
+  version                       = "~> 1.5"
+  aliases                       = var.aliases
+  comment                       = var.comment
+  create_distribution           = var.create_distribution
+  create_origin_access_identity = length(var.origin_access_identities) != 0 ? true : false
+  custom_error_response         = var.custom_error_response
+  default_cache_behavior        = var.default_cache_behavior
+  default_root_object           = var.default_root_object
+  enabled                       = var.enabled
+  geo_restriction               = var.geo_restriction
+  http_version                  = var.http_version
+  is_ipv6_enabled               = var.is_ipv6_enabled
+  ordered_cache_behavior        = var.ordered_cache_behavior
+  origin                        = var.origin
+  origin_access_identities      = var.origin_access_identities
+  origin_group                  = var.origin_group
+  price_class                   = var.price_class
+  retain_on_delete              = var.retain_on_delete
+  viewer_certificate            = var.viewer_certificate
+  wait_for_deployment           = var.wait_for_deployment
+  web_acl_id                    = var.web_acl_id
+  logging_config = length(var.logging_config) != 0 ? {
+    bucket          = element(concat(module.log_bucket.*.this_s3_bucket_bucket_domain_name, list("")), 0)
+    include_cookies = lookup(var.logging_config, "include_cookies", false)
+    prefix          = lookup(var.logging_config, "prefix", "")
+  } : {}
+  tags = var.tags
 }
 
-resource "aws_s3_bucket" "bucket" {
-  count = local.bucket_count
+data "aws_canonical_user_id" "current" {}
 
-  bucket = var.logging_config_bucket
-  acl    = "private"
-
-  versioning {
-    enabled = false
-  }
-
+module "log_bucket" {
+  source        = "terraform-aws-modules/s3-bucket/aws"
+  version       = "~> v1.17"
+  count         = length(var.logging_config) != 0 ? 1 : 0
+  bucket        = lookup(var.logging_config, "bucket_name", null)
   force_destroy = true
-
+  acl           = null
+  grant = [{
+    type        = "CanonicalUser"
+    permissions = ["FULL_CONTROL"]
+    id          = data.aws_canonical_user_id.current.id
+    }, {
+    type        = "CanonicalUser"
+    permissions = ["FULL_CONTROL"]
+    id          = "c4c1ede66af53448b93c283ce9448c4ba468c9432aa01d700d3878632f77d2d0"
+    # Ref. https://github.com/terraform-providers/terraform-provider-aws/issues/12512
+    # Ref. https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html
+  }]
   tags = var.tags
 }
 
-resource "aws_cloudfront_distribution" "cdn" {
-  origin {
-    domain_name = var.origin_domain_name == "" ? data.terraform_remote_state.alb.outputs.dns_name : var.origin_domain_name
-    origin_id   = data.terraform_remote_state.alb.outputs.load_balancer_id
-
-    custom_origin_config {
-      http_port                = var.origin_http_port
-      https_port               = var.origin_https_port
-      origin_keepalive_timeout = var.origin_keepalive_timeout
-      origin_protocol_policy   = var.origin_protocol_policy
-      origin_read_timeout      = var.origin_read_timeout
-      origin_ssl_protocols     = var.origin_ssl_protocols
-    }
-  }
-
-  dynamic "logging_config" {
-    for_each = var.logging_enabled ? [1] : []
-    content {
-      bucket          = aws_s3_bucket.bucket[local.bucket_count - 1].bucket_domain_name
-      include_cookies = var.logging_config_include_cookies
-    }
-  }
-
-  aliases             = var.aliases
-  enabled             = var.enabled
-  is_ipv6_enabled     = var.is_ipv6_enabled
-  comment             = var.comment
-  default_root_object = var.default_root_object
-
-  default_cache_behavior {
-    allowed_methods  = var.allowed_methods
-    cached_methods   = var.cached_methods
-    target_origin_id = data.terraform_remote_state.alb.outputs.load_balancer_id
-
-    forwarded_values {
-      query_string = var.forward_query_string
-      headers      = var.forwarded_headers
-      cookies {
-        forward = var.forwarded_cookies
-      }
-    }
-
-    viewer_protocol_policy = var.viewer_protocol_policy
-    min_ttl                = var.min_ttl
-    default_ttl            = var.default_ttl
-    max_ttl                = var.max_ttl
-  }
-
-  price_class = var.price_class
-
-  viewer_certificate {
-    acm_certificate_arn      = var.acm_certificate_arn
-    minimum_protocol_version = var.minimum_protocol_version
-    ssl_support_method       = var.ssl_support_method
-  }
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
-    }
-  }
-  
-  web_acl_id = can(var.web_acl_id) ? var.web_acl_id : null
-
-  tags = var.tags
-}
-
-resource "aws_route53_record" "cdn_record" {
+resource "aws_route53_record" "record" {
   for_each = toset(var.aliases)
-
-  name    = each.value
-  zone_id = var.route_53_zone_id
-  type    = "A"
-
+  name     = each.value
+  zone_id  = var.route53_zone_id
+  type     = "A"
   alias {
-    name                   = aws_cloudfront_distribution.cdn.domain_name
-    zone_id                = aws_cloudfront_distribution.cdn.hosted_zone_id
+    name                   = module.cloudfront.this_cloudfront_distribution_domain_name
+    zone_id                = module.cloudfront.this_cloudfront_distribution_hosted_zone_id
     evaluate_target_health = true
   }
 }
