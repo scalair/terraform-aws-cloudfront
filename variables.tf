@@ -1,183 +1,139 @@
-####################
-# ALB remote state #
-####################
-variable "alb_bucket" {
-  description = "Name of the bucket where ALB state is stored"
-}
-
-variable "alb_state_key" {
-  description = "Key where the state file of the ALB is stored"
-}
-
-variable "alb_state_region" {
-  description = "Region where the state file of the ALB is stored"
-}
-
-#######
-# CDN #
-#######
-variable "name" {
-  description = "Name  (e.g. `bastion` or `db`)"
-}
-
-variable "enabled" {
-  description = "Set to false to prevent the module from creating any resources"
+variable "create_distribution" {
+  description = "Controls if CloudFront distribution should be created"
+  type        = bool
   default     = true
 }
 
-variable "tags" {
-  description = "Additional tags (e.g. `map('BusinessUnit','XYZ')`)"
-  type        = map
+variable "create_origin_access_identity" {
+  description = "Controls if CloudFront origin access identity should be created"
+  type        = bool
+  default     = false
+}
+
+variable "origin_access_identities" {
+  description = "Map of CloudFront origin access identities (value as a comment)"
+  type        = map(string)
   default     = {}
 }
 
-variable "acm_certificate_arn" {
-  description = "Existing ACM Certificate ARN"
-  default     = ""
-}
-
 variable "aliases" {
-  description = "List of aliases. CAUTION! Names MUSTN'T contain trailing `.`"
+  description = "Extra CNAMEs (alternate domain names), if any, for this distribution."
   type        = list(string)
-  default     = []
+  default     = null
 }
 
-variable "origin_domain_name" {
-  description = "The domain name of the custom origin. If not set, terraform will use ALB domain name/"
-  default     = ""
-}
-
-variable "origin_http_port" {
-  description = "(Required) - The HTTP port the custom origin listens on"
-  default     = "80"
-}
-
-variable "origin_https_port" {
-  description = "(Required) - The HTTPS port the custom origin listens on"
-  default     = "443"
-}
-
-variable "origin_protocol_policy" {
-  description = "(Required) - The origin protocol policy to apply to your origin. One of http-only, https-only, or match-viewer"
-  default     = "match-viewer"
-}
-
-variable "origin_ssl_protocols" {
-  description = "(Required) - The SSL/TLS protocols that you want CloudFront to use when communicating with your origin over HTTPS"
-  type        = list(string)
-  default     = ["TLSv1", "TLSv1.1", "TLSv1.2"]
-}
-
-variable "origin_keepalive_timeout" {
-  description = "(Optional) The Custom KeepAlive timeout, in seconds. By default, AWS enforces a limit of 60. But you can request an increase."
-  default     = "60"
-}
-
-variable "origin_read_timeout" {
-  description = "(Optional) The Custom Read timeout, in seconds. By default, AWS enforces a limit of 60. But you can request an increase."
-  default     = "60"
-}
-
-variable "is_ipv6_enabled" {
-  description = "State of CloudFront IPv6"
-  default     = "true"
-}
-
-variable "default_root_object" {
-  description = "Object that CloudFront return when requests the root URL"
-  default     = ""
+variable "route53_zone_id" {
+  description = "Route53 Zone ID for creating ALIAS records."
+  type        = string
 }
 
 variable "comment" {
-  description = "Comment for the origin access identity"
-  default     = "Managed by Terraform"
+  description = "Any comments you want to include about the distribution."
+  type        = string
+  default     = null
+}
+
+variable "default_root_object" {
+  description = "The object that you want CloudFront to return (for example, index.html) when an end user requests the root URL."
+  type        = string
+  default     = null
+}
+
+variable "enabled" {
+  description = "Whether the distribution is enabled to accept end user requests for content."
+  type        = bool
+  default     = true
+}
+
+variable "http_version" {
+  description = "The maximum HTTP version to support on the distribution. Allowed values are http1.1 and http2. The default is http2."
+  type        = string
+  default     = "http2"
+}
+
+variable "is_ipv6_enabled" {
+  description = "Whether the IPv6 is enabled for the distribution."
+  type        = bool
+  default     = null
 }
 
 variable "price_class" {
-  description = "Price class for this distribution: `PriceClass_All`, `PriceClass_200`, `PriceClass_100`"
-  default     = "PriceClass_100"
-}
-
-variable "viewer_protocol_policy" {
-  description = "allow-all, redirect-to-https"
-  default     = "redirect-to-https"
-}
-
-variable "allowed_methods" {
-  description = "List of allowed methods (e.g. ` GET, PUT, POST, DELETE, HEAD`) for AWS CloudFront"
-  type        = list(string)
-  default     = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-}
-
-variable "cached_methods" {
-  description = "List of cached methods (e.g. ` GET, PUT, POST, DELETE, HEAD`)"
-  type        = list(string)
-  default     = ["GET", "HEAD"]
-}
-
-variable "default_ttl" {
-  description = "Default amount of time (in seconds) that an object is in a CloudFront cache"
-  default     = "60"
-}
-
-variable "min_ttl" {
-  description = "Minimum amount of time that you want objects to stay in CloudFront caches"
-  default     = "0"
-}
-
-variable "max_ttl" {
-  description = "Maximum amount of time (in seconds) that an object is in a CloudFront cache"
-  default     = "31536000"
-}
-
-variable "minimum_protocol_version" {
-  description = "The minimum version of the SSL protocol that you want CloudFront to use for HTTPS connections"
-  default     = "TLSv1"
-}
-
-variable "ssl_support_method" {
-  description = "Specifies how you want CloudFront to serve HTTPS requests"
-  default     = "sni-only"
-}
-
-variable "route_53_zone_id" {
-  description = "ID of the Route 53 Zone where records will be made"
-}
-
-variable "forward_query_string" {
-  type    = bool
-  default = true
-}
-
-variable "forwarded_headers" {
-  type    = list(string)
-  default = []
-}
-
-variable "forwarded_cookies" {
-  type    = string
-  default = "none"
-}
-
-variable "logging_enabled" {
-  description = "Boolean to enable / disable access_logs"
-  type        = bool
-  default     = false
-}
-
-variable "logging_config_include_cookies" {
-  description = "Specifies whether you want CloudFront to include cookies in access logs"
-  type        = bool
-  default     = false
-}
-
-variable "logging_config_bucket" {
-  description = "The Amazon S3 bucket to store the access logs in, for example"
+  description = "The price class for this distribution. One of PriceClass_All, PriceClass_200, PriceClass_100"
   type        = string
+  default     = null
+}
+
+variable "retain_on_delete" {
+  description = "Disables the distribution instead of deleting it when destroying the resource through Terraform. If this is set, the distribution needs to be deleted manually afterwards."
+  type        = bool
+  default     = false
+}
+
+variable "wait_for_deployment" {
+  description = "If enabled, the resource will wait for the distribution status to change from InProgress to Deployed. Setting this tofalse will skip the process."
+  type        = bool
+  default     = true
 }
 
 variable "web_acl_id" {
-  description = " If you're using AWS WAF to filter CloudFront requests, the Id of the AWS WAF web ACL that is associated with the distribution"
+  description = "If you're using AWS WAF to filter CloudFront requests, the Id of the AWS WAF web ACL that is associated with the distribution. The WAF Web ACL must exist in the WAF Global (CloudFront) region and the credentials configuring this argument must have waf:GetWebACL permissions assigned. If using WAFv2, provide the ARN of the web ACL."
   type        = string
   default     = null
+}
+
+variable "tags" {
+  description = "A map of tags to assign to the resource."
+  type        = map(string)
+  default     = null
+}
+
+variable "origin" {
+  description = "One or more origins for this distribution (multiples allowed)."
+  type        = any
+  default     = null
+}
+
+variable "origin_group" {
+  description = "One or more origin_group for this distribution (multiples allowed)."
+  type        = any
+  default     = {}
+}
+
+variable "viewer_certificate" {
+  description = "The SSL configuration for this distribution"
+  type        = any
+  default = {
+    cloudfront_default_certificate = true
+    minimum_protocol_version       = "TLSv1.2_2019"
+  }
+}
+
+variable "geo_restriction" {
+  description = "The restriction configuration for this distribution (geo_restrictions)"
+  type        = any
+  default     = {}
+}
+
+variable "logging_config" {
+  description = "The logging configuration that controls how logs are written to your distribution (maximum one)."
+  type        = any
+  default     = {}
+}
+
+variable "custom_error_response" {
+  description = "One or more custom error response elements"
+  type        = any
+  default     = {}
+}
+
+variable "default_cache_behavior" {
+  description = "The default cache behavior for this distribution"
+  type        = any
+  default     = null
+}
+
+variable "ordered_cache_behavior" {
+  description = "An ordered list of cache behaviors resource for this distribution. List from top to bottom in order of precedence. The topmost cache behavior will have precedence 0."
+  type        = list(any)
+  default     = []
 }
