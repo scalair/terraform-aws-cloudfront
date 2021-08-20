@@ -22,7 +22,7 @@ module "cloudfront" {
   wait_for_deployment           = var.wait_for_deployment
   web_acl_id                    = var.web_acl_id
   logging_config = length(var.logging_config) != 0 ? {
-    bucket          = element(concat(module.log_bucket.*.this_s3_bucket_bucket_domain_name, list("")), 0)
+    bucket          = module.log_bucket.*.s3_bucket_bucket_domain_name
     include_cookies = lookup(var.logging_config, "include_cookies", false)
     prefix          = lookup(var.logging_config, "prefix", "")
   } : {}
@@ -58,8 +58,8 @@ resource "aws_route53_record" "record" {
   zone_id  = var.route53_zone_id
   type     = "A"
   alias {
-    name                   = module.cloudfront.this_cloudfront_distribution_domain_name
-    zone_id                = module.cloudfront.this_cloudfront_distribution_hosted_zone_id
+    name                   = module.cloudfront.cloudfront_distribution_domain_name
+    zone_id                = module.cloudfront.cloudfront_distribution_hosted_zone_id
     evaluate_target_health = true
   }
 }
