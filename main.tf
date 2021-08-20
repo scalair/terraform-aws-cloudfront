@@ -22,7 +22,7 @@ module "cloudfront" {
   wait_for_deployment           = var.wait_for_deployment
   web_acl_id                    = var.web_acl_id
   logging_config = length(var.logging_config) != 0 ? {
-    bucket          = module.log_bucket.*.s3_bucket_bucket_domain_name
+    bucket          = element(concat(module.log_bucket.*.s3_bucket_bucket_domain_name, [""]), 0)
     include_cookies = lookup(var.logging_config, "include_cookies", false)
     prefix          = lookup(var.logging_config, "prefix", "")
   } : {}
