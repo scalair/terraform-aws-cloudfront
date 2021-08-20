@@ -1,5 +1,18 @@
 # Changelog
 
+## v3.0.0 - 2021-08-20
+
+This release contains *breaking changes*.
+
+### Changed
+
+- Upgrade cloudfront module
+- Upgrade s3 bucket module
+
+### Fixed
+
+- Deprecated output values
+
 ## v2.0.0 - 2021-02-08
 
 This release contains *breaking changes*.
