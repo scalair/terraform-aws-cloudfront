@@ -1,6 +1,6 @@
 module "cloudfront" {
   source                        = "terraform-aws-modules/cloudfront/aws"
-  version                       = "~> 1.5"
+  version                       = "~> 2.7"
   aliases                       = var.aliases
   comment                       = var.comment
   create_distribution           = var.create_distribution
@@ -33,7 +33,7 @@ data "aws_canonical_user_id" "current" {}
 
 module "log_bucket" {
   source        = "terraform-aws-modules/s3-bucket/aws"
-  version       = "~> v1.17"
+  version       = "~> v2.7"
   count         = length(var.logging_config) != 0 ? 1 : 0
   bucket        = lookup(var.logging_config, "bucket_name", null)
   force_destroy = true
